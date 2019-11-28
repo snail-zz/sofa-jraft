@@ -80,6 +80,7 @@ public abstract class RepeatedTimer implements Describer {
         return timeoutMs;
     }
 
+    //时间器执行方法
     public void run() {
         this.lock.lock();
         try {

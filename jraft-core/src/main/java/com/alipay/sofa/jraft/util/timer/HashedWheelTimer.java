@@ -196,23 +196,37 @@ public class HashedWheelTimer implements Timer {
             throw new IllegalArgumentException("ticksPerWheel must be greater than 0: " + ticksPerWheel);
         }
 
+        // 创建一个HashedWheelBucket数组
+        // 创建时间轮基本的数据结构，一个数组。长度为不小于ticksPerWheel的最小2的n次方
+
         // Normalize ticksPerWheel to power of two and initialize the wheel.
         wheel = createWheel(ticksPerWheel);
+
+        // 这是一个标示符，用来快速计算任务应该呆的格子。
+        // 我们知道，给定一个deadline的定时任务，其应该呆的格子=deadline%wheel.length.但是%操作是个相对耗时的操作，所以使用一种变通的位运算代替：
+        // 因为一圈的长度为2的n次方，mask = 2^n-1后低位将全部是1，然后deadline&mast == deadline%wheel.length
+        // java中的HashMap在进行hash之后，进行index的hash寻址寻址的算法也是和这个一样的
         mask = wheel.length - 1;
 
         // Convert tickDuration to nanos.
+        //tickDuration传入是1的话，这里会转换成1000000
         this.tickDuration = unit.toNanos(tickDuration);
 
         // Prevent overflow.
+
+        // 校验是否存在溢出。即指针转动的时间间隔不能太长而导致tickDuration*wheel.length>Long.MAX_VALUE
         if (this.tickDuration >= Long.MAX_VALUE / wheel.length) {
             throw new IllegalArgumentException(String.format(
                 "tickDuration: %d (expected: 0 < tickDuration in nanos < %d", tickDuration, Long.MAX_VALUE
                                                                                             / wheel.length));
         }
+
+        //将worker包装成thread，使用factory创建线程
         workerThread = threadFactory.newThread(worker);
 
         this.maxPendingTimeouts = maxPendingTimeouts;
 
+        //如果HashedWheelTimer实例太多，那么就会打印一个error日志
         if (instanceCounter.incrementAndGet() > INSTANCE_COUNT_LIMIT
             && warnedTooManyInstances.compareAndSet(false, true)) {
             reportTooManyInstances();
@@ -232,6 +246,7 @@ public class HashedWheelTimer implements Timer {
         }
     }
 
+    //创建时间轮，数组
     private static HashedWheelBucket[] createWheel(int ticksPerWheel) {
         if (ticksPerWheel <= 0) {
             throw new IllegalArgumentException("ticksPerWheel must be greater than 0: " + ticksPerWheel);
@@ -370,7 +385,9 @@ public class HashedWheelTimer implements Timer {
                   + "reused across the JVM, so that only a few instances are created.", resourceType, resourceType);
     }
 
+    //定义工作线程
     private final class Worker implements Runnable {
+
         private final Set<Timeout> unprocessedTimeouts = new HashSet<>();
 
         private long               tick;
