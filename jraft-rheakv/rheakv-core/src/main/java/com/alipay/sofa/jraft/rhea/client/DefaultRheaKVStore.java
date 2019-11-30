@@ -244,6 +244,8 @@ public class DefaultRheaKVStore implements RheaKVStore {
                 return false;
             }
         }
+
+
         final Endpoint selfEndpoint = this.storeEngine == null ? null : this.storeEngine.getSelfEndpoint();
         final RpcOptions rpcOpts = opts.getRpcOptions();
         Requires.requireNonNull(rpcOpts, "opts.rpcOptions");
@@ -897,6 +899,7 @@ public class DefaultRheaKVStore implements RheaKVStore {
     private void internalPut(final byte[] key, final byte[] value, final CompletableFuture<Boolean> future,
                              final int retriesLeft, final Errors lastCause) {
         final Region region = this.pdClient.findRegionByKey(key, ErrorsHelper.isInvalidEpoch(lastCause));
+        //获取region Engine
         final RegionEngine regionEngine = getRegionEngine(region.getId(), true);
         final RetryRunner retryRunner = retryCause -> internalPut(key, value, future, retriesLeft - 1,
                 retryCause);
@@ -940,8 +943,10 @@ public class DefaultRheaKVStore implements RheaKVStore {
         return FutureHelper.get(getAndPut(key, value), this.futureTimeoutMillis);
     }
 
+    //从范围中获取且设置值
     private void internalGetAndPut(final byte[] key, final byte[] value, final CompletableFuture<byte[]> future,
                                    final int retriesLeft, final Errors lastCause) {
+        //以key获取存放的region
         final Region region = this.pdClient.findRegionByKey(key, ErrorsHelper.isInvalidEpoch(lastCause));
         final RegionEngine regionEngine = getRegionEngine(region.getId(), true);
         final RetryRunner retryRunner = retryCause -> internalGetAndPut(key, value, future, retriesLeft - 1,

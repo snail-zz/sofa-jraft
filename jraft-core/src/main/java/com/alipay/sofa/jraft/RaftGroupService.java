@@ -126,6 +126,7 @@ public class RaftGroupService {
         //Adds RPC server to Server.
         NodeManager.getInstance().addAddress(this.serverId.getEndpoint());
 
+        //创建node，传入node配置，serverId，groupId
         this.node = RaftServiceFactory.createAndInitRaftNode(this.groupId, this.serverId, this.nodeOptions);
         if (startRpcServer) {
             this.rpcServer.start();

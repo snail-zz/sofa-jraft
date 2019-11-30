@@ -24,7 +24,9 @@ import com.alipay.sofa.jraft.util.BytesUtil;
  */
 public class RegionRouteTableOptions {
 
+    //regionId
     private Long   regionId;
+    //start key
     private String startKey;
     private byte[] startKeyBytes;
     private String endKey;
