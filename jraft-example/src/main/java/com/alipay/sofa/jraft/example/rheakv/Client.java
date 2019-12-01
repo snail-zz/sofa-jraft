@@ -46,6 +46,7 @@ public class Client {
             .config();
         final RheaKVStoreOptions opts = RheaKVStoreOptionsConfigured.newConfigured() //
             .withClusterName(Configs.CLUSTER_NAME) //
+               // .withInitialServerList("127.0.0.1:8811,127.0.0.1:8812")
             .withPlacementDriverOptions(pdOpts) //
             .config();
         System.out.println(opts);
